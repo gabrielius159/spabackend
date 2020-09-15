@@ -2,11 +2,14 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Core\Annotation\ApiResource;
 use App\Repository\BlogPostRepository;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
  * @ORM\Entity(repositoryClass=BlogPostRepository::class)
+ * @ApiResource()
  */
 class BlogPost
 {
@@ -33,7 +36,8 @@ class BlogPost
     private $content;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\ManyToOne(targetEntity="App\Entity\User", inversedBy="posts")
+     * @ORM\JoinColumn(nullable=false)
      */
     private $author;
 
@@ -44,16 +48,40 @@ class BlogPost
      */
     private $slug;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Comment", mappedBy="blogPost")
+     */
+    private $comments;
+
+    /**
+     * BlogPost constructor.
+     */
+    public function __construct()
+    {
+        $this->comments = new ArrayCollection();
+    }
+
+    /**
+     * @return int|null
+     */
     public function getId(): ?int
     {
         return $this->id;
     }
 
+    /**
+     * @return string|null
+     */
     public function getTitle(): ?string
     {
         return $this->title;
     }
 
+    /**
+     * @param string $title
+     *
+     * @return $this
+     */
     public function setTitle(string $title): self
     {
         $this->title = $title;
@@ -61,11 +89,19 @@ class BlogPost
         return $this;
     }
 
+    /**
+     * @return \DateTimeInterface|null
+     */
     public function getPublished(): ?\DateTimeInterface
     {
         return $this->published;
     }
 
+    /**
+     * @param \DateTimeInterface $published
+     *
+     * @return $this
+     */
     public function setPublished(\DateTimeInterface $published): self
     {
         $this->published = $published;
@@ -73,26 +109,22 @@ class BlogPost
         return $this;
     }
 
+    /**
+     * @return string|null
+     */
     public function getContent(): ?string
     {
         return $this->content;
     }
 
+    /**
+     * @param string $content
+     *
+     * @return $this
+     */
     public function setContent(string $content): self
     {
         $this->content = $content;
-
-        return $this;
-    }
-
-    public function getAuthor(): ?string
-    {
-        return $this->author;
-    }
-
-    public function setAuthor(string $author): self
-    {
-        $this->author = $author;
 
         return $this;
     }
@@ -114,14 +146,28 @@ class BlogPost
     }
 
     /**
-     * @return string
+     * @return User
      */
-    public function getPublishedDateAsString(): string
+    public function getAuthor(): User
     {
-        if (is_null($this->getPublished())) {
-            return '';
-        }
+        return $this->author;
+    }
 
-        return $this->getPublished()->format('Y-m-d H:i');
+    /**
+     * @param User $author
+     */
+    public function setAuthor(User $author): self
+    {
+        $this->author = $author;
+
+        return $this;
+    }
+
+    /**
+     * @return ArrayCollection
+     */
+    public function getComments(): ArrayCollection
+    {
+        return $this->comments;
     }
 }
